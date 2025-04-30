@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/tarm/serial"
@@ -18,7 +19,7 @@ var ErrorWords = []string{"error", "panic", "fatal"}
 
 func containsError(s string) bool {
 	for _, word := range ErrorWords {
-		if strings.Contains(s, word) {
+		if strings.Contains(strings.ToLower(s), word) {
 			return true
 		}
 	}
@@ -29,6 +30,7 @@ func main() {
 	// Command-line flags for serial configuration
 	portName := flag.String("port", "/dev/serial0", "Serial port device (e.g., /dev/serial0 or /dev/ttyAMA0)")
 	baudRate := flag.Int("baud", 115200, "Baud rate for serial communication")
+	logFilePath := flag.String("logfile", "uart_errors.log", "Path to error log file")
 	flag.Parse()
 
 	// Open the serial port
@@ -39,17 +41,26 @@ func main() {
 	}
 	defer port.Close()
 
-	log.Printf("Listening on %s at %d baud...", *portName, *baudRate)
+	//fmt.Printf("Listening on %s at %d baud...\n", *portName, *baudRate)
+
+	// Open log file
+	logFile, err := os.OpenFile(*logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	defer logFile.Close()
 
 	// Read lines from UART
 	scanner := bufio.NewScanner(port)
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println(line)
+		//fmt.Println(line)
 
-		// Detect the error keywords (case-insensitive)
 		if containsError(line) {
-			log.Printf("Error detected: %s", line)
+			_, err := logFile.WriteString(fmt.Sprintf("Error detected: %s\n", line))
+			if err != nil {
+				log.Printf("Failed to write to log file: %v", err)
+			}
 		}
 	}
 
