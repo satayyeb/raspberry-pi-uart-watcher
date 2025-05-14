@@ -49,6 +49,9 @@ func main() {
 	}
 	defer logFile.Close()
 
+	go httpServer()
+	fmt.Println(">>> HTTP server started...")
+
 	// Read lines from UART
 	scanner := bufio.NewScanner(port)
 	fmt.Println(">>> Scanner started...")

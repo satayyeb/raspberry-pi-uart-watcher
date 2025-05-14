@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Error Log Viewer</title>
+    <style>
+        body {
+            background: #1e1e2f;
+            color: #f0f0f0;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+        }
+        h1 {
+            color: #61dafb;
+        }
+        #log {
+            background: #2e2e3e;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 80vh;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+<h1>Live Error Log Viewer</h1>
+<div id="log"></div>
+
+<script>
+    const logDiv = document.getElementById('log');
+    const evtSource = new EventSource('/events');
+
+    evtSource.onmessage = function(e) {
+        logDiv.textContent += e.data + '\n';
+        logDiv.scrollTop = logDiv.scrollHeight;
+    };
+</script>
+</body>
+</html>

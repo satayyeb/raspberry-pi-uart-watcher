@@ -37,8 +37,9 @@ find-ip:
 
 transfer:
 	make
-	ssh root@$(RASPBERRY_PI_IP) 'rm -f myapp'
+	ssh root@$(RASPBERRY_PI_IP) 'rm -f myapp && mkdir -p static && rm -f static/index.html'
 	scp build/myapp root@$(RASPBERRY_PI_IP):~
+	scp static/index.html root@$(RASPBERRY_PI_IP):~/static
 
 deploy:
 	make transfer
