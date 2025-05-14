@@ -17,3 +17,6 @@ clean:
 
 run: all
 	$(BUILD_DIR)/$(APP_NAME)
+
+test:
+	go build -o $(BUILD_DIR)/$(APP_NAME)_test && sudo ./$(BUILD_DIR)/$(APP_NAME)_test
