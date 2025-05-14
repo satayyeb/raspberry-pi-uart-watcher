@@ -58,9 +58,9 @@ func main() {
 		fmt.Println(line)
 		if containsError(line) {
 			fmt.Println(">>> Error detected. try to appending it to the file...")
-			_, err := logFile.WriteString(line)
+			_, err := logFile.WriteString(line + "\n")
 			if err != nil {
-				fmt.Println(">>> Failed to write to log file: %v", err)
+				fmt.Printf(">>> Failed to write to log file: %v\n", err)
 			}
 		}
 	}
