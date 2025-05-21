@@ -66,6 +66,13 @@ func main() {
 				fmt.Printf(">>> Failed to write to log file: %v\n", err)
 			}
 		}
+		if strings.Contains(strings.ToLower(line), "Booting Linux on physical CPU 0x0000000000") {
+			fmt.Println(">>> Reboot detected. try to appending it to the file...")
+			_, err := logFile.WriteString(line + "\n")
+			if err != nil {
+				fmt.Printf(">>> Failed to write to log file: %v\n", err)
+			}
+		}
 	}
 
 	// Check for scanning errors
