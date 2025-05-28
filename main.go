@@ -1,7 +1,3 @@
-// uart_error_detector.go
-// A simple Go program for Raspberry Pi that reads incoming UART lines
-// and logs any line containing the keyword "error".
-
 package main
 
 import (
@@ -12,9 +8,12 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
+	"time"
 )
 
 var ErrorWords = []string{"error", "panic", "fatal", "fail"}
+var HEARTBEAT_STRING = "heartbeat: alive"
 
 func containsError(s string) bool {
 	for _, word := range ErrorWords {
@@ -56,6 +55,28 @@ func main() {
 	scanner := bufio.NewScanner(port)
 	fmt.Println(">>> Scanner started...")
 
+	var mu sync.Mutex
+	lastHeartbeat := time.Now()
+
+	// Heartbeat monitor goroutine
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			mu.Lock()
+			if time.Since(lastHeartbeat) > 5*time.Second {
+				msg := fmt.Sprintf(">>> Heartbeat timeout at %s\n", time.Now().Format(time.RFC3339))
+				fmt.Print(msg)
+				_, err := logFile.WriteString(msg)
+				if err != nil {
+					fmt.Printf(">>> Failed to write heartbeat timeout: %v\n", err)
+				}
+				// Reset to avoid spamming every second
+				lastHeartbeat = time.Now()
+			}
+			mu.Unlock()
+		}
+	}()
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
@@ -72,6 +93,11 @@ func main() {
 			if err != nil {
 				fmt.Printf(">>> Failed to write to log file: %v\n", err)
 			}
+		}
+		if strings.Contains(line, HEARTBEAT_STRING) {
+			mu.Lock()
+			lastHeartbeat = time.Now()
+			mu.Unlock()
 		}
 	}
 
